@@ -11,6 +11,8 @@ typedef struct{
 #define BNOIR "40"
 #define BBLANC "47"
 #define BVERT "42"
+#define FBLANC "37"
+#define BROUGE "41"
 
 #define DIMENSION 13
 tcase plateau[DIMENSION][DIMENSION];
@@ -29,19 +31,16 @@ void init_plateau(){
                     plateau[j][i].num = compteur;
                 }
                 if(j % 2 == 0 && i % 2 == 1){   // Ajout des murs
-                    compteur++;
                     plateau[j][i].id = '-';
-                    plateau[j][i].num = compteur;
+                    plateau[j][i].num = -1; // non utilisable
                 }
                 if(j % 2 == 1 && i % 2 == 0){   // Ajout des murs
-                    compteur++;
                     plateau[j][i].id = '|';
-                    plateau[j][i].num = compteur;
+                    plateau[j][i].num = -1; // non utilisable
                 }
                 if(j % 2 == 1 && i % 2 == 1){  // Ajout du plateau
-                    compteur++;
                     plateau[j][i].id = 'X';
-                    plateau[j][i].num = compteur;
+                    plateau[j][i].num = -1; // non utilisable
                 }    
             }
 
@@ -59,19 +58,16 @@ void init_plateau(){
                     }
                 }
                 if(j % 2 == 0 && i % 2 == 1){   // Ajout des murs
-                    compteur++;
                     plateau[j][i].id = '-';
-                    plateau[j][i].num = compteur;
+                    plateau[j][i].num = -1; // non utilisable
                 }
                 if(j % 2 == 1 && i % 2 == 0){   // Ajout des murs
-                    compteur++;
                     plateau[j][i].id = '|';
-                    plateau[j][i].num = compteur;
+                    plateau[j][i].num = -1; // non utilisable
                 }
                 if(j % 2 == 1 && i % 2 == 1){   // Ajout du plateau
-                    compteur++;
                     plateau[j][i].id = 'X';
-                    plateau[j][i].num = compteur;
+                    plateau[j][i].num = -1; // non utilisable
                 }
             }
             if(j > 8 && j<=DIMENSION-1){
@@ -82,48 +78,45 @@ void init_plateau(){
                         plateau[j][i].num = compteur;
                     }
                     else{
-                        compteur++;
                         plateau[j][i].id = 'E'; //empty
-                        plateau[j][i].num = compteur;
+                        plateau[j][i].num = -1; // non utilisable
                     }
                     
                 }
                 if(j % 2 == 0 && i % 2 == 1){
                     if(i == 5 || i == 7){   // Ajout des murs
-                        compteur++;
                         plateau[j][i].id = '-'; 
-                        plateau[j][i].num = compteur;
+                        plateau[j][i].num = -1; // non utilisable
                     }
                     else{
-                        compteur++;
                         plateau[j][i].id = 'E'; // Empty
-                        plateau[j][i].num = compteur;
+                        plateau[j][i].num = -1; // non utilisable
                     }
                 }
                 if(j % 2 == 1 && i % 2 == 0){
-                    if(i ==4 || i == 8){
-                        compteur++;
-                        plateau[j][i].id = '|';
-                        plateau[j][i].num = compteur;
+                    if(i ==4 || i == 6 || i == 8){
+                        if( i ==4 || i == 8){
+                            plateau[j][i].id = '|';
+                            plateau[j][i].num = -1; // non utilisable
+                        }
+                        else{
+                            plateau[j][i].id = 'B';
+                            plateau[j][i].num = -1; // non utilisable
+                        }  
                     }
                     else{
-                        compteur++;
                         plateau[j][i].id = 'E';
-                        plateau[j][i].num = compteur;
-
+                        plateau[j][i].num = -1; // non utilisable
                     }
-                    
                 }
                 if(j % 2 == 1 && i % 2 == 1){
                     if(i == 5 || i == 7){
-                        compteur++;
                         plateau[j][i].id = 'X';
-                        plateau[j][i].num = compteur;
+                        plateau[j][i].num = -1; // non utilisable
                     }
                     else{
-                        compteur++;
                         plateau[j][i].id = 'E';
-                        plateau[j][i].num = compteur;
+                        plateau[j][i].num = -1; // non utilisable
                     }
   
                 }
@@ -132,23 +125,59 @@ void init_plateau(){
     }
 }
 
-void print_plateau(){
+void print_plateau(int affichage){ //affichche = 0 affiche pions, affichage = 1 affiche numéros
     for(int i = 0; i < DIMENSION; i++){
         for(int j = 0; j < DIMENSION; j++){
-            if(plateau[i][j].id == 'S' || plateau[i][j].id == 'C' || plateau[i][j].id == ' '){
+            if(plateau[i][j].id == 'S' || plateau[i][j].id == ' '){
                 couleur(FNOIR);
                 couleur(BVERT);
-                printf(" %c ", plateau[i][j].id);
+                if (affichage == 0){
+                    printf(" %c ", plateau[i][j].id);
+                }
+                else{
+                    printf("%03d", plateau[i][j].num);
+                }
+            }
+            if(plateau[i][j].id == 'C'){
+                couleur(FNOIR);
+                couleur(BROUGE);
+                if (affichage == 0){
+                    printf(" %c ", plateau[i][j].id);
+                }
+                else{
+                    printf("%03d", plateau[i][j].num);
+                }
             }
             if(plateau[i][j].id == 'E'){
                 couleur(FNOIR);
                 couleur(BNOIR);
-                printf("   ");
+                if (affichage == 0){
+                    printf("   ");
+                }
+                else{
+                    printf("%03d", plateau[i][j].num);
+                }
+                
+            }
+            if(plateau[i][j].id == 'B'){
+                couleur(FBLANC);
+                couleur(BBLANC);
+                if (affichage == 0){
+                    printf("   ");
+                }
+                else{
+                    printf("%03d", plateau[i][j].num);
+                }
             }
             if(plateau[i][j].id == 'X' || plateau[i][j].id == '-' || plateau[i][j].id == '|'){
                 couleur(FNOIR);
                 couleur(BBLANC);
-                printf(" %c ", plateau[i][j].id);
+                if (affichage == 0){
+                    printf(" %c ", plateau[i][j].id);
+                }
+                else{
+                    printf("%03d", plateau[i][j].num);
+                }
             }
             
             couleur("0");
@@ -159,6 +188,6 @@ void print_plateau(){
 
 int main(void){
     init_plateau();
-    print_plateau();
+    print_plateau(1);
     return 0;
 }
