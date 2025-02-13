@@ -268,14 +268,17 @@ int regle_souris(int case_num, int new_case_num){
     if((abs(new_j - current_j) == MOOVE && abs(new_i - current_i) == MOOVE) || 
        (abs(new_j - current_j) == MOOVE && abs(new_i - current_i) == 0) || 
        (abs(new_j - current_j) == 0 && abs(new_i - current_i) == MOOVE)){
-
+        
         // Si la souris quitte un refuge, la case redevient un refuge
-        if(plateau[current_j][current_i].id == 'S' && (plateau[current_j][current_i].num >= 15 && plateau[current_j][current_i].num <= 31)){
-            plateau[current_j][current_i].id = 'R';
-        } else {
-            plateau[current_j][current_i].id = ' ';
+        for(int i = 0; i < 9; i++){
+            if(plateau[current_j][current_i].num == refuge[i]){
+                plateau[current_j][current_i].id = 'R';
+                plateau[new_j][new_i].id = 'S';
+                return 1;
+            }
         }
         plateau[new_j][new_i].id = 'S';
+        plateau[current_j][current_i].id = ' ';
         return 1;
     }
     
@@ -284,7 +287,7 @@ int regle_souris(int case_num, int new_case_num){
     return 0;
 }
 
-int regle_chat(int case_num, int new_case_num){
+int regle_chat(int case_num, int new_case_num, int printer){
     // Variables de position
     int current_j = 0;
     int current_i = 0;
@@ -310,56 +313,41 @@ int regle_chat(int case_num, int new_case_num){
 
     // Vérification que la case de départ est bien un chat
     if(plateau[current_j][current_i].id != 'C'){
-        printf("Déplacement impossible, la case de départ n'est pas un chat\n");
+        if(printer == 1){
+            printf("Déplacement impossible, la case de départ n'est pas un chat\n");
+        }
         return 0;
     }
     // Interdiction que le chat se déplace sur une case occupée
-    if(plateau[new_j][new_i].id != ' '){
-        printf("Déplacement impossible, case occupée ou inaccessible\n");
+    else if(plateau[new_j][new_i].id != ' '){
+        if(printer == 1){
+            printf("Déplacement impossible, case occupée ou inaccessible\n");
+        }
         return 0;
     }
     // Interdiction que le chat entre dans un refuge
-    if(plateau[new_j][new_i].id == 'R'){
-        printf("Déplacement impossible, les chats ne peuvent pas entrer dans un refuge\n");
+    else if(plateau[new_j][new_i].id == 'R'){
+        if(printer == 1){
+            printf("Déplacement impossible, les chats ne peuvent pas entrer dans un refuge\n");
+        }
         return 0;
     }
 
-    // Vérification du déplacement de 2 cases avec une souris à manger
-    if(abs(current_j - new_j) == 2 * MOOVE && abs(current_i - new_i) == 0){
-        if(plateau[(current_j + new_j) / 2][current_i].id == 'S'){
-            plateau[new_j][new_i].id = 'C';
-            plateau[current_j][current_i].id = ' ';
-            plateau[(current_j + new_j) / 2][current_i].id = ' ';
-            return 1;
+    //Empecher tous les déplacements de plus de 1 case
+    else if((abs(new_j - current_j) > MOOVE) || (abs(new_i - current_i) > MOOVE)){
+        if(printer == 1){
+            printf("Déplacement impossible, les chats ne peuvent se déplacer que d'une case\n");
         }
-    }
-    if(abs(current_i - new_i) == 2 * MOOVE && abs(current_j - new_j) == 0){
-        if(plateau[current_j][(current_i + new_i) / 2].id == 'S'){
-            plateau[new_j][new_i].id = 'C';
-            plateau[current_j][current_i].id = ' ';
-            plateau[current_j][(current_i + new_i) / 2].id = ' ';
-            return 1;
-        }
+        return 0;
     }
 
-    // Vérification du déplacement de 1 case
-    if(abs(current_j - new_j) == MOOVE && abs(current_i - new_i) == 0){
-        plateau[new_j][new_i].id = 'C';
-        plateau[current_j][current_i].id = ' ';
-        return 1;
-    }
-    if(abs(current_i - new_i) == MOOVE && abs(current_j - new_j) == 0){
-        plateau[new_j][new_i].id = 'C';
-        plateau[current_j][current_i].id = ' ';
-        return 1;
-    }
-
-    // Déplacement impossible
-    printf("Déplacement impossible, mouvement non autorisé\n");
-    return 0;
+    // Tout est bon
+    plateau[new_j][new_i].id = 'C';
+    plateau[current_j][current_i].id = ' ';
+    return 1;
 }
 
-int kill_the_cat(int case_num){
+int kill_the_cat(int printer, int random){
     // Variables de position
     int current_j = 0;
     int current_i = 0;
@@ -369,91 +357,282 @@ int kill_the_cat(int case_num){
     //Réponse du joueur
     int reponse;
 
+    // Liste des chats
+    int chat_list_j[2];
+    int chat_list_i[2];
+    int index = 0; // Index de la liste des chats
+
     // Récupération des coordonnées de la case et de la nouvelle case
     for (int i = 0; i < DIMENSION; i++){
         for (int j = 0; j < DIMENSION; j++){
-            if(plateau[j][i].num == case_num){ // Case localisée dans le plateau
-                current_j = j;
-                current_i = i;
+            if(plateau[j][i].id == 'C'){ // Récupération des positions des chats
+                chat_list_j[index] = j;
+                chat_list_i[index] = i;
+                index++;
+            }
+        }
+    }
+    for(int i = 0 ; i < index+1; i++){
+        current_j = chat_list_j[i];
+        current_i = chat_list_i[i];
+        // Vérification dans les 8 directions si le chat peut manger une souris
+        if(plateau[current_j][current_i].id == 'C'){ // Check chat
+
+            // Check sur j+
+            if(plateau[current_j + MOOVE][current_i].id == 'S' && plateau[current_j + (2 * MOOVE)][current_i].id == ' '){
+                if (printer == 1) {
+                    printf("Chat en [%d] peut manger la souris en [%d]\n", plateau[current_j][current_i].num, plateau[current_j + MOOVE][current_i].num);
+                } 
+                if (random == 0) {
+                    if(printer == 1){
+                        printf("Manger la souris :\n[1] Oui\n[2] Non\nQue faire : ");
+                        scanf("%d", &reponse);
+                    }
+                } 
+                else{
+                    int rand_value = rand() % 4;
+                    if (rand_value < 3) {
+                        reponse = 1;
+                    } 
+                    else
+                        reponse = 2;
+                }   
+                switch(reponse){
+                    case 1:
+                        plateau[current_j + MOOVE][current_i].id = ' '; // Suppression de la souris
+                        plateau[current_j][current_i].id = ' '; // Suppression de la pos du chat
+                        plateau[current_j + (2 * MOOVE)][current_i].id = 'C'; // Déplacement du chat
+                        return 0;
+                    case 2:
+                        plateau[current_j][current_i].id = ' '; // Le chat est tué
+                        return 1;
+                }
             }
             
-        }
-    }
+            // Check sur j-
+            if(plateau[current_j - MOOVE][current_i].id == 'S' && plateau[current_j - (2 * MOOVE)][current_i].id == ' '){
+                if (printer == 1) {
+                    printf("Chat en [%d] peut manger la souris en [%d]\n", plateau[current_j][current_i].num, plateau[current_j - MOOVE][current_i].num);
+                } 
+                if (random == 0) {
+                    if(printer == 1){
+                        printf("Manger la souris :\n[1] Oui\n[2] Non\nQue faire : ");
+                        scanf("%d", &reponse);
+                    }
+                } 
+                else{
+                    int rand_value = rand() % 4;
+                    if (rand_value < 3) {
+                        reponse = 1;
+                    } 
+                    else
+                        reponse = 2;
+                }   
+                switch(reponse){
+                    case 1:
+                        plateau[current_j - MOOVE][current_i].id = ' '; // Suppression de la souris
+                        plateau[current_j][current_i].id = ' '; // Suppression de la pos du chat
+                        plateau[current_j - (2 * MOOVE)][current_i].id = 'C'; // Déplacement du chat
+                        return 0;
+                    case 2:
+                        plateau[current_j][current_i].id = ' '; // Le chat est tué
+                        return 1;
+                }
+            }
 
-    // Vériffiaction dans les 8 directions si le chat peut manger une souris
-    if(plateau[current_j][current_i].id == 'C'){ // Check chat
-        // Check sur j+
-        if(plateau[current_j + MOOVE][current_i].id == 'S' && plateau[current_j + (2 * MOOVE)][current_i].id == ' '){
-            printf("Chat en [%d] peut manger la souris en [%d]\n", plateau[current_j][current_i].num, plateau[current_j + MOOVE][current_i].num);
-            printf("Manger la souris :\n[1] Oui\n[2] Non\nQue faire : ");
-            scanf("%d", &reponse);
-            switch(reponse){
-                case 1:
-                    plateau[current_j + MOOVE][current_i].id = ' '; // Suppression de la souris
-                    plateau[current_j][current_i].id = ' '; // Suppression de la pos du chat
-                    plateau[current_j + (2 * MOOVE)][current_i].id = 'C'; // Déplacement du chat
-                    return 0;
-                case 2:
-                    plateau[current_j][current_i].id = ' '; // Le chat est tué
-                    return 1;
+            // Check sur i+
+            if(plateau[current_j][current_i + MOOVE].id == 'S' && plateau[current_j][current_i + (2 * MOOVE)].id == ' '){
+                if (printer == 1) {
+                    printf("Chat en [%d] peut manger la souris en [%d]\n", plateau[current_j][current_i].num, plateau[current_j][current_i + MOOVE].num);
+                } 
+                if (random == 0) {
+                    if(printer == 1){
+                        printf("Manger la souris :\n[1] Oui\n[2] Non\nQue faire : ");
+                        scanf("%d", &reponse);
+                    }
+                } 
+                else{
+                    int rand_value = rand() % 4;
+                    if (rand_value < 3) {
+                        reponse = 1;
+                    } 
+                    else
+                        reponse = 2;
+                }   
+                switch(reponse){
+                    case 1:
+                        plateau[current_j][current_i + MOOVE].id = ' '; // Suppression de la souris
+                        plateau[current_j][current_i].id = ' '; // Suppression de la pos du chat
+                        plateau[current_j][current_i + (2 * MOOVE)].id = 'C'; // Déplacement du chat
+                        return 0;
+                    case 2:
+                        plateau[current_j][current_i].id = ' '; // Le chat est tué
+                        return 1;
+                }
             }
-        }
-        // Check sur j-
-        else if(plateau[current_j - MOOVE][current_i].id == 'S' && plateau[current_j - (2 * MOOVE)][current_i].id == ' '){
-            printf("Chat en [%d] peut manger la souris en [%d]\n", plateau[current_j][current_i].num, plateau[current_j - MOOVE][current_i].num);
-            printf("Manger la souris :\n[1] Oui\n[2] Non\nQue faire : ");
-            scanf("%d", &reponse);
-            switch(reponse){
-                case 1:
-                    plateau[current_j - MOOVE][current_i].id = ' '; // Suppression de la souris
-                    plateau[current_j][current_i].id = ' '; // Suppression de la pos du chat
-                    plateau[current_j - (2 * MOOVE)][current_i].id = 'C'; // Déplacement du chat
-                    return 0;
-                case 2:
-                    plateau[current_j][current_i].id = ' '; // Le chat est tué
-                    return 1;
-            }
-        }
-        // Check sur i+
-        else if(plateau[current_j][current_i + MOOVE].id == 'S' && plateau[current_j][current_i + (2 * MOOVE)].id == ' '){
-            printf("Chat en [%d] peut manger la souris en [%d]\n", plateau[current_j][current_i].num, plateau[current_j][current_i + MOOVE].num);
-            printf("Manger la souris :\n[1] Oui\n[2] Non\nQue faire : ");
-            scanf("%d", &reponse);
-            switch(reponse){
-                case 1:
-                    plateau[current_j][current_i + MOOVE].id = ' '; // Suppression de la souris
-                    plateau[current_j][current_i].id = ' '; // Suppression de la pos du chat
-                    plateau[current_j][current_i + (2 * MOOVE)].id = 'C'; // Déplacement du chat
-                    return 0;
-                case 2:
-                    plateau[current_j][current_i].id = ' '; // Le chat est tué
-                    return 1;
-            }
-        }
-        // Check sur i-
-        else if(plateau[current_j][current_i - MOOVE].id == 'S' && plateau[current_j][current_i - (2 * MOOVE)].id == ' '){
-            printf("Chat en [%d] peut manger la souris en [%d]\n", plateau[current_j][current_i].num, plateau[current_j][current_i - MOOVE].num);
-            printf("Manger la souris :\n[1] Oui\n[2] Non\nQue faire : ");
-            scanf("%d", &reponse);
-            switch(reponse){
-                case 1:
-                    plateau[current_j][current_i - MOOVE].id = ' '; // Suppression de la souris
-                    plateau[current_j][current_i].id = ' '; // Suppression de la pos du chat
-                    plateau[current_j][current_i - (2 * MOOVE)].id = 'C'; // Déplacement du chat
-                    return 0;
-                case 2:
-                    plateau[current_j][current_i].id = ' '; // Le chat est tué
-                    return 1;
-            }
-        }
-        else{
-            //Rien à signaler pour le chat
-            return 2;
-        }
-        
-    }
 
+            // Check sur i-
+            if(plateau[current_j][current_i - MOOVE].id == 'S' && plateau[current_j][current_i - (2 * MOOVE)].id == ' '){
+                if (printer == 1) {
+                    printf("Chat en [%d] peut manger la souris en [%d]\n", plateau[current_j][current_i].num, plateau[current_j][current_i - MOOVE].num);
+                } 
+                if (random == 0) {
+                    if(printer == 1){
+                        printf("Manger la souris :\n[1] Oui\n[2] Non\nQue faire : ");
+                        scanf("%d", &reponse);
+                    }
+                } 
+                else{
+                    int rand_value = rand() % 4;
+                    if (rand_value < 3) {
+                        reponse = 1;
+                    } 
+                    else
+                        reponse = 2;
+                }   
+                switch(reponse){
+                    case 1:
+                        plateau[current_j][current_i - MOOVE].id = ' '; // Suppression de la souris
+                        plateau[current_j][current_i].id = ' '; // Suppression de la pos du chat
+                        plateau[current_j][current_i - (2 * MOOVE)].id = 'C'; // Déplacement du chat
+                        return 0;
+                    case 2:
+                        plateau[current_j][current_i].id = ' '; // Le chat est tué
+                        return 1;
+                }
+            }
+
+            // Check sur diagonale j+ i+
+            if(plateau[current_j + MOOVE][current_i + MOOVE].id == 'S' && plateau[current_j + (2 * MOOVE)][current_i + (2 * MOOVE)].id == ' '){
+                if (printer == 1) {
+                    printf("Chat en [%d] peut manger la souris en [%d]\n", plateau[current_j][current_i].num, plateau[current_j + MOOVE][current_i + MOOVE].num);
+                } 
+                if (random == 0) {
+                    if(printer == 1){
+                        printf("Manger la souris :\n[1] Oui\n[2] Non\nQue faire : ");
+                        scanf("%d", &reponse);
+                    }
+                } 
+                else{
+                    int rand_value = rand() % 4;
+                    if (rand_value < 3) {
+                        reponse = 1;
+                    } 
+                    else
+                        reponse = 2;
+                }   
+                switch(reponse){
+                    case 1:
+                        plateau[current_j + MOOVE][current_i + MOOVE].id = ' '; // Suppression de la souris
+                        plateau[current_j][current_i].id = ' '; // Suppression de la pos du chat
+                        plateau[current_j + (2 * MOOVE)][current_i + (2 * MOOVE)].id = 'C'; // Déplacement du chat
+                        return 0;
+                    case 2:
+                        plateau[current_j][current_i].id = ' '; // Le chat est tué
+                        return 1;
+                }
+            }
+
+            // Check sur diagonale j+ i-
+            if(plateau[current_j + MOOVE][current_i - MOOVE].id == 'S' && plateau[current_j + (2 * MOOVE)][current_i - (2 * MOOVE)].id == ' '){
+                if (printer == 1) {
+                    printf("Chat en [%d] peut manger la souris en [%d]\n", plateau[current_j][current_i].num, plateau[current_j + MOOVE][current_i - MOOVE].num);
+                } 
+                if (random == 0) {
+                    if(printer == 1){
+                        printf("Manger la souris :\n[1] Oui\n[2] Non\nQue faire : ");
+                        scanf("%d", &reponse);
+                    }
+                } 
+                else{
+                    int rand_value = rand() % 4;
+                    if (rand_value < 3) {
+                        reponse = 1;
+                    } 
+                    else
+                        reponse = 2;
+                }   
+                switch(reponse){
+                    case 1:
+                        plateau[current_j + MOOVE][current_i - MOOVE].id = ' '; // Suppression de la souris
+                        plateau[current_j][current_i].id = ' '; // Suppression de la pos du chat
+                        plateau[current_j + (2 * MOOVE)][current_i - (2 * MOOVE)].id = 'C'; // Déplacement du chat
+                        return 0;
+                    case 2:
+                        plateau[current_j][current_i].id = ' '; // Le chat est tué
+                        return 1;
+                }
+            }
+
+            // Check sur diagonale j- i+
+            if(plateau[current_j - MOOVE][current_i + MOOVE].id == 'S' && plateau[current_j - (2 * MOOVE)][current_i + (2 * MOOVE)].id == ' '){
+                if (printer == 1) {
+                    printf("Chat en [%d] peut manger la souris en [%d]\n", plateau[current_j][current_i].num, plateau[current_j - MOOVE][current_i + MOOVE].num);
+                } 
+                if (random == 0) {
+                    if(printer == 1){
+                        printf("Manger la souris :\n[1] Oui\n[2] Non\nQue faire : ");
+                        scanf("%d", &reponse);
+                    }
+                } 
+                else{
+                    int rand_value = rand() % 4;
+                    if (rand_value < 3) {
+                        reponse = 1;
+                    } 
+                    else
+                        reponse = 2;
+                }   
+                switch(reponse){
+                    case 1:
+                        plateau[current_j - MOOVE][current_i + MOOVE].id = ' '; // Suppression de la souris
+                        plateau[current_j][current_i].id = ' '; // Suppression de la pos du chat
+                        plateau[current_j - (2 * MOOVE)][current_i + (2 * MOOVE)].id = 'C'; // Déplacement du chat
+                        return 0;
+                    case 2:
+                        plateau[current_j][current_i].id = ' '; // Le chat est tué
+                        return 1;
+                }
+            }
+
+            // Check sur diagonale j- i-
+            if(plateau[current_j - MOOVE][current_i - MOOVE].id == 'S' && plateau[current_j - (2 * MOOVE)][current_i - (2 * MOOVE)].id == ' '){
+                if (printer == 1) {
+                    printf("Chat en [%d] peut manger la souris en [%d]\n", plateau[current_j][current_i].num, plateau[current_j - MOOVE][current_i - MOOVE].num);
+                } 
+                if (random == 0) {
+                    if(printer == 1){
+                        printf("Manger la souris :\n[1] Oui\n[2] Non\nQue faire : ");
+                        scanf("%d", &reponse);
+                    }
+                } 
+                else{
+                    int rand_value = rand() % 4;
+                    if (rand_value < 3) {
+                        reponse = 1;
+                    } 
+                    else
+                        reponse = 2;
+                }   
+                switch(reponse){
+                    case 1:
+                        plateau[current_j - MOOVE][current_i - MOOVE].id = ' '; // Suppression de la souris
+                        plateau[current_j][current_i].id = ' '; // Suppression de la pos du chat
+                        plateau[current_j - (2 * MOOVE)][current_i - (2 * MOOVE)].id = 'C'; // Déplacement du chat
+                        return 0;
+                    case 2:
+                        plateau[current_j][current_i].id = ' '; // Le chat est tué
+                        return 1;
+                }
+            }
+            else{
+                //Rien à signaler pour le chat
+                return 2;
+            }
+        }    
+    }
 }
+
 
 int check_victory() {
     int souris_count = 0;
@@ -496,21 +675,25 @@ int check_victory() {
     return 0;
 }
 
-void game_loop() {
+void game_loop_bot(){
+    // Variables de jeu
     int case_num = 0;
     int new_case_num = 0;
     int check_cat = 0;
+    int bot_choice = 0;
+
     while (check_victory() == 0) {
 
         // Clear console
         clear();
         print_plateau(1);
 
-
+        // Vérification de la victoire
         if (check_victory()) {
             break;
         }
 
+        // Tour de la souris
         printf("[SOURIS] Quelle case à déplacer ?\n");
         scanf("%d", &case_num);
         printf("[SOURIS] Où déplacer la case ?\n");
@@ -529,18 +712,103 @@ void game_loop() {
         clear();
         print_plateau(1);
 
+        // Vérification de la victoire
         if (check_victory()) {
             break;
         }
 
+        // Tour du chat
+
+        // Voir si le chat peut manger une souris
+        check_cat = kill_the_cat(0, 1);
+
+        // Déplacement du chat
+        if(check_cat == 2){
+
+            //Choix du bot pour le choix de la case
+            // Choix du bot case à déplacer
+            int z = rand() % DIMENSION;
+            int x = rand() % DIMENSION;
+            while(plateau[z][x].id != 'C'){
+                z = rand() % DIMENSION;
+                x = rand() % DIMENSION;
+            }
+            case_num = plateau[z][x].num;
+
+            //Choix du bot pour le déplacement
+            z = rand() % DIMENSION;
+            x = rand() % DIMENSION;
+            new_case_num = plateau[z][x].num;
+            while (regle_chat(case_num, new_case_num, 1) != 1) {
+                z = rand() % DIMENSION;
+                x = rand() % DIMENSION;
+                while(plateau[z][x].id != ' '){
+                    z = rand() % DIMENSION;
+                    x = rand() % DIMENSION;
+                }
+                new_case_num = plateau[z][x].num;
+            }
+            clear();
+            print_plateau(1);
+        }
+        printf("[CHAT] Déplacement du chat en [%d] vers [%d]\n", case_num, new_case_num);
+        sleep(2);
+    }
+}
+
+
+void game_loop() {
+
+    // Variables de jeu
+    int case_num = 0;
+    int new_case_num = 0;
+    int check_cat = 0;
+
+
+    while (check_victory() == 0) {
+
+        // Clear console
+        clear();
+        print_plateau(1);
+
+        // Vérification de la victoire
+        if (check_victory()) {
+            break;
+        }
+
+        // Tour de la souris
+        printf("[SOURIS] Quelle case à déplacer ?\n");
+        scanf("%d", &case_num);
+        printf("[SOURIS] Où déplacer la case ?\n");
+        scanf("%d", &new_case_num);
+        while (regle_souris(case_num, new_case_num) != 1) {
+            sleep(1);
+            clear();
+            print_plateau(1);
+            printf("[SOURIS] Quelle case à déplacer ?\n");
+            scanf("%d", &case_num);
+            printf("[SOURIS] Où déplacer la case ?\n");
+            scanf("%d", &new_case_num);
+        }
+
+        // Clear console
+        clear();
+        print_plateau(1);
+
+        // Vérification de la victoire
+        if (check_victory()) {
+            break;
+        }
+
+        // Tour du chat
         printf("[CHAT] Quelle case à déplacer ?\n");
         scanf("%d", &case_num);
-        check_cat = kill_the_cat(case_num);
+        check_cat = kill_the_cat(1, 0);
         
         if(check_cat == 2){
             printf("[CHAT] Où déplacer la case ?\n");
             scanf("%d", &new_case_num);
-            while (regle_chat(case_num, new_case_num) != 1) {
+            while (regle_chat(case_num, new_case_num, 1) != 1) {
                 sleep(1);
                 clear();
                 print_plateau(1);
@@ -555,7 +823,8 @@ void game_loop() {
 
 int main(void){
     init_plateau();
-    game_loop();
+    //game_loop();
+    game_loop_bot();
 
 
 
