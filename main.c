@@ -392,8 +392,11 @@ int kill_the_cat(int printer, int random){
         }
     }
     for(int i = 0 ; i < index+1; i++){
+
+        // Récupération des coordonnées du chat
         current_j = chat_list_j[i];
         current_i = chat_list_i[i];
+
         // Vérification dans les 8 directions si le chat peut manger une souris
         if(plateau[current_j][current_i].id == 'C'){ // Check chat
 
@@ -810,8 +813,10 @@ void game_loop_bot(){
 void game_loop() {
 
     // Variables de jeu
-    int case_num = 0;
-    int new_case_num = 0;
+    int case_num_souris = 0;
+    int new_case_num_souris = 0;
+    int case_num_chat = 0;
+    int new_case_num_chat = 0;
     int check_cat = 0;
 
 
@@ -828,18 +833,19 @@ void game_loop() {
 
         // Tour de la souris
         printf("[SOURIS] Quelle case à déplacer ?\n");
-        scanf("%d", &case_num);
+        scanf("%d", &case_num_souris);
         printf("[SOURIS] Où déplacer la case ?\n");
-        scanf("%d", &new_case_num);
-        while (regle_souris(case_num, new_case_num) != 1) {
+        scanf("%d", &new_case_num_souris);
+        while (regle_souris(case_num_souris, new_case_num_souris) != 1) {
             sleep(1);
             clear();
             print_plateau(1);
             printf("[SOURIS] Quelle case à déplacer ?\n");
-            scanf("%d", &case_num);
+            scanf("%d", &case_num_souris);
             printf("[SOURIS] Où déplacer la case ?\n");
-            scanf("%d", &new_case_num);
+            scanf("%d", &new_case_num_souris);
         }
+        sauvegarde("sauvegarde.txt", 1, case_num_souris, new_case_num_souris);
 
         // Clear console
         clear();
@@ -851,22 +857,26 @@ void game_loop() {
         }
 
         // Tour du chat
-        printf("[CHAT] Quelle case à déplacer ?\n");
-        scanf("%d", &case_num);
+
+        // Voir si le chat peut manger une souris
         check_cat = kill_the_cat(1, 0);
         
+        // Déplacement du chat
         if(check_cat == 2){
+            printf("[CHAT] Quelle case à déplacer ?\n");
+            scanf("%d", &case_num_chat);
             printf("[CHAT] Où déplacer la case ?\n");
-            scanf("%d", &new_case_num);
-            while (regle_chat(case_num, new_case_num, 1) != 1) {
+            scanf("%d", &new_case_num_chat);
+            while (regle_chat(case_num_chat, new_case_num_chat, 1) != 1) {
                 sleep(1);
                 clear();
                 print_plateau(1);
                 printf("[CHAT] Quelle case à déplacer ?\n");
-                scanf("%d", &case_num);
+                scanf("%d", &case_num_chat);
                 printf("[CHAT] Où déplacer la case ?\n");
-                scanf("%d", &new_case_num);
+                scanf("%d", &new_case_num_chat);
             }
+            sauvegarde("sauvegarde.txt", 2, case_num_chat, new_case_num_chat);
         }
     }
 }
@@ -892,6 +902,55 @@ void sauvegarde(char nomFichier[], int type, int case_num, int new_case_num){
     }
 }
 
+void placement_chat(){
+    int reponse = 0;
+    int choix_case1 = 0;
+    int choix_case2 = 0;
+    int default_placement[2] = {14, 28};
+    int correct_placement[7] = {4, 9, 14, 21, 28, 35, 40};
+    clear();
+    print_plateau(1);
+    printf("Voulez-vous placer vos chats ?\n[1] Oui\n[2] Non\nQue faire : ");
+    scanf("%d", &reponse);
+    switch(reponse){
+        case 1:
+            printf("Chat en [%d] en quelle case : ", default_placement[0]);
+            scanf("%d", &choix_case1);
+            while(choix_case1 != correct_placement[0] && choix_case1 != correct_placement[1] && choix_case1 != correct_placement[2] && choix_case1 != correct_placement[3] && choix_case1 != correct_placement[4] && choix_case1 != correct_placement[5] && choix_case1 != correct_placement[6]){
+                printf("Placement incorrect, veuillez choisir une case valide : ");
+                scanf("%d", &choix_case1);
+            }
+            printf("Chat en [%d] en quelle case : ", default_placement[1]);
+            scanf("%d", &choix_case2);
+            while(choix_case2 != correct_placement[0] && choix_case2 != correct_placement[1] && choix_case2 != correct_placement[2] && choix_case2 != correct_placement[3] && choix_case2 != correct_placement[4] && choix_case2 != correct_placement[5] && choix_case2 != correct_placement[6]){
+                printf("Placement incorrect, veuillez choisir une case valide : ");
+                scanf("%d", &choix_case2);
+            }
+            for(int i = 0; i < DIMENSION; i++){
+                for(int j = 0; j < DIMENSION; j++){
+                    if(plateau[j][i].num == default_placement[0]){
+                        plateau[j][i].id = ' ';
+                    }
+                    if(plateau[j][i].num == default_placement[1]){
+                        plateau[j][i].id = ' ';
+                    }
+                    if(plateau[j][i].num == choix_case1){
+                        plateau[j][i].id = 'C';
+                    }
+                    if(plateau[j][i].num == choix_case2){
+                        plateau[j][i].id = 'C';
+                    }
+                    
+                }
+            }
+
+            break;
+        case 2: // Placement par défaut
+            break;
+        default:
+            break;
+    }
+}
 
 // Menu du jeu
 void menu(){
@@ -905,6 +964,7 @@ void menu(){
         switch(choix){
             case 1:
                 init_plateau();
+                placement_chat();
                 game_loop();
                 break;
             case 2:
