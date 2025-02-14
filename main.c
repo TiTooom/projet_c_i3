@@ -28,7 +28,26 @@ int refuge[9] = {15, 22, 29, 16, 23, 30, 17, 24, 31};
 
 #define MOOVE 2 
 
+//Prototype
+void init_plateau();
+void print_plateau(int affichage);
+int regle_souris(int case_num, int new_case_num);
+int regle_chat(int case_num, int new_case_num, int printer);
+int kill_the_cat(int printer, int random);
+int check_victory();
+void game_loop();
+void game_loop_bot();
+void sauvegarde(char nomFichier[], int type, int case_num, int new_case_num);
+void menu();
+
+
+// Fonctions de jeu
 void init_plateau(){
+
+    // Init fichier de sauvegarde
+    sauvegarde("sauvegarde.txt", 0, 0, 0);
+
+    // Initialisation du plateau
     int compteur = 0;
     for(int i = 0; i < DIMENSION; i++){
         for(int j = 0; j < DIMENSION; j++){
@@ -402,9 +421,11 @@ int kill_the_cat(int printer, int random){
                         plateau[current_j + MOOVE][current_i].id = ' '; // Suppression de la souris
                         plateau[current_j][current_i].id = ' '; // Suppression de la pos du chat
                         plateau[current_j + (2 * MOOVE)][current_i].id = 'C'; // Déplacement du chat
+                        sauvegarde("sauvegarde.txt", 2, plateau[current_j][current_i].num, plateau[current_j + (2 * MOOVE)][current_i].num);
                         return 0;
                     case 2:
                         plateau[current_j][current_i].id = ' '; // Le chat est tué
+
                         return 1;
                 }
             }
@@ -433,6 +454,7 @@ int kill_the_cat(int printer, int random){
                         plateau[current_j - MOOVE][current_i].id = ' '; // Suppression de la souris
                         plateau[current_j][current_i].id = ' '; // Suppression de la pos du chat
                         plateau[current_j - (2 * MOOVE)][current_i].id = 'C'; // Déplacement du chat
+                        sauvegarde("sauvegarde.txt", 2, plateau[current_j][current_i].num, plateau[current_j - (2 * MOOVE)][current_i].num);
                         return 0;
                     case 2:
                         plateau[current_j][current_i].id = ' '; // Le chat est tué
@@ -464,6 +486,7 @@ int kill_the_cat(int printer, int random){
                         plateau[current_j][current_i + MOOVE].id = ' '; // Suppression de la souris
                         plateau[current_j][current_i].id = ' '; // Suppression de la pos du chat
                         plateau[current_j][current_i + (2 * MOOVE)].id = 'C'; // Déplacement du chat
+                        sauvegarde("sauvegarde.txt", 2, plateau[current_j][current_i].num, plateau[current_j][current_i + (2 * MOOVE)].num);
                         return 0;
                     case 2:
                         plateau[current_j][current_i].id = ' '; // Le chat est tué
@@ -495,6 +518,7 @@ int kill_the_cat(int printer, int random){
                         plateau[current_j][current_i - MOOVE].id = ' '; // Suppression de la souris
                         plateau[current_j][current_i].id = ' '; // Suppression de la pos du chat
                         plateau[current_j][current_i - (2 * MOOVE)].id = 'C'; // Déplacement du chat
+                        sauvegarde("sauvegarde.txt", 2, plateau[current_j][current_i].num, plateau[current_j][current_i - (2 * MOOVE)].num);
                         return 0;
                     case 2:
                         plateau[current_j][current_i].id = ' '; // Le chat est tué
@@ -526,6 +550,7 @@ int kill_the_cat(int printer, int random){
                         plateau[current_j + MOOVE][current_i + MOOVE].id = ' '; // Suppression de la souris
                         plateau[current_j][current_i].id = ' '; // Suppression de la pos du chat
                         plateau[current_j + (2 * MOOVE)][current_i + (2 * MOOVE)].id = 'C'; // Déplacement du chat
+                        sauvegarde("sauvegarde.txt", 2, plateau[current_j][current_i].num, plateau[current_j + (2 * MOOVE)][current_i + (2 * MOOVE)].num);
                         return 0;
                     case 2:
                         plateau[current_j][current_i].id = ' '; // Le chat est tué
@@ -557,6 +582,7 @@ int kill_the_cat(int printer, int random){
                         plateau[current_j + MOOVE][current_i - MOOVE].id = ' '; // Suppression de la souris
                         plateau[current_j][current_i].id = ' '; // Suppression de la pos du chat
                         plateau[current_j + (2 * MOOVE)][current_i - (2 * MOOVE)].id = 'C'; // Déplacement du chat
+                        sauvegarde("sauvegarde.txt", 2, plateau[current_j][current_i].num, plateau[current_j + (2 * MOOVE)][current_i - (2 * MOOVE)].num);
                         return 0;
                     case 2:
                         plateau[current_j][current_i].id = ' '; // Le chat est tué
@@ -588,6 +614,7 @@ int kill_the_cat(int printer, int random){
                         plateau[current_j - MOOVE][current_i + MOOVE].id = ' '; // Suppression de la souris
                         plateau[current_j][current_i].id = ' '; // Suppression de la pos du chat
                         plateau[current_j - (2 * MOOVE)][current_i + (2 * MOOVE)].id = 'C'; // Déplacement du chat
+                        sauvegarde("sauvegarde.txt", 2, plateau[current_j][current_i].num, plateau[current_j - (2 * MOOVE)][current_i + (2 * MOOVE)].num);
                         return 0;
                     case 2:
                         plateau[current_j][current_i].id = ' '; // Le chat est tué
@@ -619,6 +646,7 @@ int kill_the_cat(int printer, int random){
                         plateau[current_j - MOOVE][current_i - MOOVE].id = ' '; // Suppression de la souris
                         plateau[current_j][current_i].id = ' '; // Suppression de la pos du chat
                         plateau[current_j - (2 * MOOVE)][current_i - (2 * MOOVE)].id = 'C'; // Déplacement du chat
+                        sauvegarde("sauvegarde.txt", 2, plateau[current_j][current_i].num, plateau[current_j - (2 * MOOVE)][current_i - (2 * MOOVE)].num);
                         return 0;
                     case 2:
                         plateau[current_j][current_i].id = ' '; // Le chat est tué
@@ -632,7 +660,6 @@ int kill_the_cat(int printer, int random){
         }    
     }
 }
-
 
 int check_victory() {
     int souris_count = 0;
@@ -656,18 +683,27 @@ int check_victory() {
     }
 
     if (refuge_count == 9) { // Toutes les souris sont dans les refuges
+        // Clear console
+        clear();
+        print_plateau(1);
         printf("Victoire des souris, toutes les souris sont dans les refuges !\n");
         return 1;
     }
 
     // Souris toutes mangées
     if (souris_count == 0) { // Aucune souris sur le plateau
+        // Clear console
+        clear();
+        print_plateau(1);
         printf("Victoire des chats, toutes les souris ont été mangées !\n");
         return 1;
     }
 
     // Les chats ont été tués
     if (chat_count == 0) { // Aucun chat sur le plateau
+        // Clear console
+        clear();
+        print_plateau(1);
         printf("Victoire des souris, tous les chats ont été tués !\n");
         return 1;
     }
@@ -675,10 +711,13 @@ int check_victory() {
     return 0;
 }
 
+// Boucles de jeu
 void game_loop_bot(){
     // Variables de jeu
-    int case_num = 0;
-    int new_case_num = 0;
+    int case_num_souris = 0;
+    int new_case_num_souris = 0;
+    int case_num_chat = 0;
+    int new_case_num_chat = 0;
     int check_cat = 0;
     int bot_choice = 0;
 
@@ -695,18 +734,20 @@ void game_loop_bot(){
 
         // Tour de la souris
         printf("[SOURIS] Quelle case à déplacer ?\n");
-        scanf("%d", &case_num);
+        scanf("%d", &case_num_souris);
         printf("[SOURIS] Où déplacer la case ?\n");
-        scanf("%d", &new_case_num);
-        while (regle_souris(case_num, new_case_num) != 1) {
+        scanf("%d", &new_case_num_souris);
+        while (regle_souris(case_num_souris, new_case_num_souris) != 1) {
             sleep(1);
             clear();
             print_plateau(1);
             printf("[SOURIS] Quelle case à déplacer ?\n");
-            scanf("%d", &case_num);
+            scanf("%d", &case_num_souris);
             printf("[SOURIS] Où déplacer la case ?\n");
-            scanf("%d", &new_case_num);
+            scanf("%d", &new_case_num_souris);
         }
+        sauvegarde("sauvegarde.txt", 1, case_num_souris, new_case_num_souris);
+        printf("[SOURIS] Déplacement de [%d] en [%d]\n", case_num_souris, new_case_num_souris);
 
         // Clear console
         clear();
@@ -721,6 +762,13 @@ void game_loop_bot(){
 
         // Voir si le chat peut manger une souris
         check_cat = kill_the_cat(0, 1);
+        if(check_cat == 1){
+            printf("Le chat a été tué\n");
+        }
+        if(check_cat == 0){
+            printf("Le chat a mangé une souris\n");
+        }
+        
 
         // Déplacement du chat
         if(check_cat == 2){
@@ -733,29 +781,31 @@ void game_loop_bot(){
                 z = rand() % DIMENSION;
                 x = rand() % DIMENSION;
             }
-            case_num = plateau[z][x].num;
+            case_num_chat = plateau[z][x].num;
 
             //Choix du bot pour le déplacement
             z = rand() % DIMENSION;
             x = rand() % DIMENSION;
-            new_case_num = plateau[z][x].num;
-            while (regle_chat(case_num, new_case_num, 1) != 1) {
+            new_case_num_chat = plateau[z][x].num;
+            while (regle_chat(case_num_chat, new_case_num_chat, 1) != 1) {
                 z = rand() % DIMENSION;
                 x = rand() % DIMENSION;
                 while(plateau[z][x].id != ' '){
                     z = rand() % DIMENSION;
                     x = rand() % DIMENSION;
                 }
-                new_case_num = plateau[z][x].num;
+                new_case_num_chat = plateau[z][x].num;
             }
             clear();
             print_plateau(1);
+
+            printf("[CHAT] Déplacement du chat en [%d] vers [%d]\n", case_num_chat, new_case_num_chat);
+            sauvegarde("sauvegarde.txt", 2, case_num_chat, new_case_num_chat);
         }
-        printf("[CHAT] Déplacement du chat en [%d] vers [%d]\n", case_num, new_case_num);
+        
         sleep(2);
     }
 }
-
 
 void game_loop() {
 
@@ -821,12 +871,55 @@ void game_loop() {
     }
 }
 
-int main(void){
-    init_plateau();
-    //game_loop();
-    game_loop_bot();
+// Sauvegarde des coups de la partie
+void sauvegarde(char nomFichier[], int type, int case_num, int new_case_num){
+    FILE *fichier = fopen(nomFichier, "a"); // Utilisation du mode "a" pour ajouter à la fin du fichier
+    if(fichier != NULL){
+        if(type == 1){
+            fprintf(fichier, "[SOURIS] Déplacement de [%d] en [%d]\n",case_num, new_case_num);
+        }
+        if(type == 2){
+            fprintf(fichier, "[CHAT] Déplacement de [%d] en [%d]\n",case_num, new_case_num);
+        }
+        if(type == 0){
+            fprintf(fichier,"Nouvelle Partie :\n");
+        }
+        
+        fclose(fichier);
+    }
+    else{
+        printf("Erreur lors de l'ouverture du fichier\n");
+    }
+}
 
 
+// Menu du jeu
+void menu(){
+    int choix = 0;
+    while(1){
+        printf("Bienvenue dans le jeu des souris et des chats\n");
+        printf("1. Mode JcJ\n");
+        printf("2. Mode JcB\n");
+        printf("Que voulez-vous faire ? ");
+        scanf("%d", &choix);
+        switch(choix){
+            case 1:
+                init_plateau();
+                game_loop();
+                break;
+            case 2:
+                init_plateau();
+                game_loop_bot();
+                break;
+            default:
+                exit(0);
+                break;
+        }
+    }
+}
 
+
+int main(void){  
+    menu();
     return 0;
 }
